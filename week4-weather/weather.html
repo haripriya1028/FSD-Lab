@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Weather Forecast Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+    font-family:Arial;
+    background:linear-gradient(135deg,#4592d6,#32868a);
+    min-height:100vh;
+    padding:30px;
+}
+.container{
+    max-width:900px;
+    margin:auto;
+}
+
+h1,.forecast-title{
+    color:white;
+    text-align:center;
+    margin-bottom:20px;
+}
+.search{
+    display:flex;
+    gap:10px;
+    margin-bottom:15px;
+}
+select,button{
+    padding:14px;
+    border:0;
+    border-radius:8px;
+    font-size:16px;
+}
+
+select{flex:1}
+button{
+    background:#222;
+    color:white;
+    cursor:pointer;
+}
+#message{
+    text-align:center;
+    color:white;
+    margin:15px;
+}
+.current{
+    background:#fff;
+    padding:30px;
+    border-radius:15px;
+    text-align:center;
+    margin-bottom:25px;
+}
+#location{font-size:28px}
+.temp{
+    font-size:55px;
+    font-weight:bold;
+    color:#2196f3;
+    margin:15px 0;
+}
+#description{
+    font-size:20px;
+    margin-bottom:20px;
+}
+.details{
+    display:flex;
+    justify-content:center;
+    gap:50px;
+}
+.details div{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+}
+.forecast{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:15px;
+}
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    text-align:center;
+}
+.card p{margin:8px 0}
+.card .high{
+    font-size:24px;
+    font-weight:bold;
+    color:#2196f3;
+}
+.hidden{display:none}
+@media(max-width:700px){
+    .search{flex-direction:column}
+    .forecast{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>🌤️ Weather Dashboard</h1>
+    <div class="search">
+        <select id="city">
+            <option value="">Select a City</option>
+            <option>Hyderabad</option>
+            <option>Bengaluru</option>
+            <option>Chennai</option>
+            <option>Mumbai</option>
+            <option>Delhi</option>
+            <option>Kolkata</option>
+            <option>Pune</option>
+            <option>Vijayawada</option>
+            <option>Visakhapatnam</option>
+            <option>Tirupati</option>
+        </select>
+        <button onclick="getWeather()">Get Weather</button>
+    </div>
+    <p id="message"></p>
+    <div id="weather" class="hidden">
+        <div class="current">
+            <h2 id="location"></h2>
+            <div class="temp"><span id="temperature"></span>°C</div>
+            <p id="description"></p>
+            <div class="details">
+                <div>💧<strong>Humidity</strong><span id="humidity"></span>%</div>
+                <div>💨<strong>Wind</strong><span id="wind"></span> km/h</div>
+            </div>
+        </div>
+        <h2 class="forecast-title">5-Day Forecast</h2>
+        <div id="forecast" class="forecast"></div>
+    </div>
+</div>
+<script>
+const city = document.getElementById("city");
+const weather = document.getElementById("weather");
+const message = document.getElementById("message");
+async function getWeather(){
+    if(!city.value){
+        message.textContent = "Please select a city.";
+        return;
+    }
+    message.textContent = "Loading...";
+    weather.classList.add("hidden");
+    try{
+        const geo = await fetch(
+            `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city.value)}&count=1&format=json`
+        );
+        const geoData = await geo.json();
+        const place = geoData.results?.[0];
+        if(!place) throw new Error("City not found.");
+        const api = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=5`
+        );
+        const data = await api.json();
+        showWeather(place,data);
+        message.textContent = "";
+        weather.classList.remove("hidden");
+    }catch(error){
+        message.textContent = error.message;
+    }
+}
+function showWeather(place,data){
+    const current = data.current;
+    document.getElementById("location").textContent =
+        `${place.name}, ${place.country}`;
+    document.getElementById("temperature").textContent =
+        Math.round(current.temperature_2m);
+    document.getElementById("description").textContent =
+        getDescription(current.weather_code);
+    document.getElementById("humidity").textContent =
+        current.relative_humidity_2m;
+    document.getElementById("wind").textContent =
+        current.wind_speed_10m;
+    showForecast(data.daily);
+}
+function showForecast(daily){
+    document.getElementById("forecast").innerHTML =
+        daily.time.map((date,i) => `
+            <div class="card">
+                <h3>${new Date(date).toLocaleDateString("en-US",{weekday:"short"})}</h3>
+                <p>${getDescription(daily.weather_code[i])}</p>
+                <p class="high">${Math.round(daily.temperature_2m_max[i])}°C</p>
+                <p>Min: ${Math.round(daily.temperature_2m_min[i])}°C</p>
+            </div>
+        `).join("");
+}
+function getDescription(code){
+    const weather = {
+        0:"Clear sky",
+        1:"Mainly clear",
+        2:"Partly cloudy",
+        3:"Overcast",
+        45:"Fog",
+        48:"Fog",
+        51:"Light drizzle",
+        53:"Moderate drizzle",
+        55:"Dense drizzle",
+        61:"Slight rain",
+        63:"Moderate rain",
+        65:"Heavy rain",
+        71:"Slight snow",
+        73:"Moderate snow",
+        75:"Heavy snow",
+        80:"Light showers",
+        81:"Moderate showers",
+        82:"Heavy showers",
+        95:"Thunderstorm"
+    };
+    return weather[code] || "Unknown";
+}
+</script>
+</body>
+</html>
