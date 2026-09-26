@@ -1,0 +1,37 @@
+.container {
+  width: 400px;
+  margin: 40px auto;
+  font-family: Arial, sans-serif;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+label {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 5px;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.error {
+  color: red;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+button {
+  margin-top: 20px;
+  padding: 9px 20px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}

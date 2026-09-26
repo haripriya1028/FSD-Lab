@@ -1,0 +1,77 @@
+<div class="container">
+
+  <h2>Job Application Form</h2>
+
+  <form [formGroup]="jobForm" (ngSubmit)="submitForm()">
+
+    <label>Name</label>
+    <input type="text" formControlName="name">
+
+    @if (jobForm.controls.name.touched && jobForm.controls.name.invalid) {
+      <div class="error">
+
+        @if (jobForm.controls.name.errors?.['required']) {
+          <span>Name is required.</span>
+        }
+
+        @if (jobForm.controls.name.errors?.['pattern']) {
+          <span>Name should contain only letters.</span>
+        }
+
+      </div>
+    }
+
+
+    <label>Email</label>
+    <input type="email" formControlName="email">
+
+    @if (jobForm.controls.email.touched && jobForm.controls.email.invalid) {
+      <div class="error">
+
+        @if (jobForm.controls.email.errors?.['required']) {
+          <span>Email is required.</span>
+        }
+
+        @if (jobForm.controls.email.errors?.['email']) {
+          <span>Enter a valid email address.</span>
+        }
+
+      </div>
+    }
+
+
+    <label>Phone Number</label>
+    <input type="text" formControlName="phone">
+
+    @if (jobForm.controls.phone.touched && jobForm.controls.phone.invalid) {
+      <div class="error">
+
+        @if (jobForm.controls.phone.errors?.['required']) {
+          <span>Phone number is required.</span>
+        }
+
+        @if (jobForm.controls.phone.errors?.['pattern']) {
+          <span>Enter a valid 10 digit phone number.</span>
+        }
+
+      </div>
+    }
+
+
+    <label>Position Applying For</label>
+    <input type="text" formControlName="position">
+
+    @if (jobForm.controls.position.touched && jobForm.controls.position.invalid) {
+      <div class="error">
+        Position is required.
+      </div>
+    }
+
+
+    <button type="submit" [disabled]="jobForm.invalid">
+      Apply
+    </button>
+
+  </form>
+
+</div>
